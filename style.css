@@ -1,0 +1,376 @@
+/* ------------------------------
+   Global Resets & Defaults
+------------------------------ */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background: black;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ------------------------------
+   Overlay Titles
+------------------------------ */
+.overlay-text {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: white;
+  pointer-events: none;
+}
+.title-main {
+  font-size: 4rem;
+  margin: 0;
+  letter-spacing: 2px;
+}
+.title-sub {
+  font-size: 2rem;
+  margin: 0.5rem 0 0;
+  font-weight: 400;
+}
+.title-small {
+  font-size: 1.2rem;
+  margin: 0.3rem 0 0;
+  font-weight: 300;
+  opacity: 0.8;
+}
+
+/* ------------------------------
+   Captions
+------------------------------ */
+.caption {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  max-width: 80%;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  color: black;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+/* ------------------------------
+   Image Section
+------------------------------ */
+.image-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+/* Zoom Controls */
+.zoom-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.zoom-controls button {
+  background: rgba(0,0,0,0.6);
+  border: 1px solid #666;
+  color: white;
+  font-size: 1.2rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.zoom-controls button:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* ------------------------------
+   Hotspots
+------------------------------ */
+/* Fixed hotspot over baseplan.jpg */
+.hotspot-fixed {
+  position: absolute;
+  width: 1in;
+  height: 1in;
+  background: rgba(255, 0, 0, 0.3);
+  top: 31%;   
+  left: 44.8%;
+  transform: translate(-60%, -40%);
+  cursor: pointer;
+}
+
+/* Hotspots tied to planf.jpg */
+.hotspot {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.3);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+.hotspot:hover {
+  background: rgba(255,0,0,0.4);
+  transform: scale(1.1);
+}
+
+/* ------------------------------
+   Modal
+------------------------------ */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.9);
+  justify-content: center;
+  align-items: center;
+}
+.modal.show { display: flex; }
+
+.modal-image {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.6s ease;
+}
+.modal.show .modal-image {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.close {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 2rem;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+}
+
+/* Custom Modal Animations */
+#axonModal .modal-image { transform: translateX(-100%); }
+#axonModal.show .modal-image { transform: translateX(0); }
+
+#sectionModal .modal-image { transform: rotateY(90deg); }
+#sectionModal.show .modal-image {
+  transform: rotateY(0);
+  transition: transform 0.6s ease, opacity 0.6s ease;
+}
+
+#roofModal .modal-image { transform: scale(2); }
+#roofModal.show .modal-image { transform: scale(1); }
+
+/* ------------------------------
+   Image Grid
+------------------------------ */
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, auto);
+  gap: 2rem;
+  padding: 2rem;
+  justify-items: center;
+  align-items: center;
+  background: black;
+}
+
+.grid-item {
+  position: relative;
+  width: 4in;
+  height: 4in;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+.grid-item:hover { transform: scale(1.08); }
+
+.grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.grid-item .caption {
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
+  background: rgba(255, 255, 255, 0.7);
+  color: black;
+  padding: 0.5rem;
+  font-size: 1rem;
+  text-align: center;
+  border-bottom-left-radius: 50%;
+  border-bottom-right-radius: 50%;
+}
+
+/* Responsive Grid */
+@media (max-width: 1200px) {
+  .grid-item { width: 3in; height: 3in; }
+}
+@media (max-width: 800px) {
+  .image-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-item { width: 2.5in; height: 2.5in; }
+}
+@media (max-width: 500px) {
+  .image-grid { grid-template-columns: 1fr; }
+  .grid-item { width: 2in; height: 2in; }
+}
+
+/* ------------------------------
+   Spotlight Section
+------------------------------ */
+.spotlight-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+#spotlightCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ------------------------------
+   Zoom Section
+------------------------------ */
+.zoom-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+.zoom-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1);
+  transition: transform 6s linear;
+  transform-origin: 50% 65%; /* zoom target slightly lower */
+}
+
+/* ------------------------------
+   Process Reveal
+------------------------------ */
+.process-reveal {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+.process-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.process-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  background: black;
+  clip-path: inset(0.75in 0 0.75in 0); /* cut 3/4 inch top & bottom */
+}
+#processCanvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* ------------------------------
+   Hotspot Section (planf.jpg)
+------------------------------ */
+.hotspot-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;         /* always full screen height */
+  background: black;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.base-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;   /* show full image, no cropping */
+  object-position: center;
+  background: black;     /* black bars if needed */
+  display: block;
+}
+
+.hotspot-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Bubble Gallery */
+.bubble-gallery {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background: black;
+  overflow: hidden;
+}
+
+/* Bubbles (circle images) */
+.bubble {
+  position: absolute;
+  border-radius: 50%;     /* makes the rectangle into a smooth oval */
+  overflow: hidden;
+  animation: pulse 8s infinite;
+  transform: translate(-50%, -50%);
+}
+
+
+
+/* Images inside bubbles */
+.bubble img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* fills oval */
+  display: block;
+}
+
+/* Shrink + grow animation */
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(0.5); }
+  50%      { transform: translate(-50%, -50%) scale(1); }
+}
+
