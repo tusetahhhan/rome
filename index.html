@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Circle Reveal Playground with Scroll</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- First section with circle reveal -->
+  <section>
+    <div class="overlay-text">
+      <h1 class="title-main">Airlume</h1>
+      <h2 class="title-sub">Tuse Tahhan</h2>
+      <h3 class="title-small">Fall 2024</h3>
+    </div>
+    <canvas id="stage"></canvas>
+  </section>
+
+  <!-- Second section with baseplan.jpg and zoom controls -->
+  <section class="image-section">
+    <div class="hotspot-fixed" id="hotspot1"></div>
+
+    <!-- Modal for full-screen image -->
+    <div class="modal" id="modal1">
+      <span class="close" id="close1">&times;</span>
+      <img src="/googleearthf.jpg" alt="Google Earth View" class="modal-image">
+    </div>
+
+    <img id="zoomImage" src="/baseplan.jpg" alt="Site Plan">
+    <div class="caption">
+      Site plan of design in the Basilica of Maxentius, within Parco Archeologico del Colosseo
+    </div>
+    <div class="zoom-controls">
+      <button id="zoomIn">＋</button>
+      <button id="zoomOut">－</button>
+    </div>
+  </section>
+
+  <!-- 3x2 Image Grid -->
+  <div class="image-grid">
+    <div class="grid-item">
+      <img src="/colsectionp.jpg" alt="Col Section">
+      <div class="caption">Col Section</div>
+    </div>
+    <div class="grid-item">
+      <img src="/bridgesectionp.jpg" alt="Bridge Section">
+      <div class="caption">Bridge Section</div>
+    </div>
+    <div class="grid-item">
+      <img src="/basilsectionp.jpg" alt="Basilica Section">
+      <div class="caption">Basilica Section</div>
+    </div>
+    <div class="grid-item">
+      <img src="/collesumplanp.jpg" alt="Collesum Plan">
+      <div class="caption">Collesum Plan</div>
+    </div>
+    <div class="grid-item">
+      <img src="/bridgeplanp.jpg" alt="Bridge Plan">
+      <div class="caption">Bridge Plan</div>
+    </div>
+    <div class="grid-item">
+      <img src="/basilaxonp.jpg" alt="Basilica Axon">
+      <div class="caption">Basilica Axon</div>
+    </div>
+  </div>
+
+  <!-- Spotlight section -->
+  <section class="spotlight-section">
+    <canvas id="spotlightCanvas"></canvas>
+  </section>
+
+  <!-- Zoom image section -->
+  <section class="zoom-section">
+    <img src="/precollage.jpg" alt="Pre-Collage" class="zoom-image">
+  </section>
+
+  <!-- Process reveal -->
+  <section class="process-reveal">
+    <div class="process-container">
+      <img src="/finaldiagram.jpg" alt="Final Diagram" class="process-image">
+      <canvas id="processCanvas"></canvas>
+    </div>
+  </section>
+
+  <!-- Hotspot section with planf.jpg -->
+  <section class="hotspot-section">
+    <div class="hotspot-wrapper">
+      <img src="/baseplanf.jpg" alt="Base Plan" class="base-image">
+
+      <!-- Hotspots tied to the image -->
+      <div class="hotspot" data-target="axonModal" style="top: 30%; left: 25%;">Axon</div>
+      <div class="hotspot" data-target="sectionModal" style="top: 50%; left: 50%;">Section</div>
+      <div class="hotspot" data-target="roofModal" style="top: 70%; left: 75%;">Roof</div>
+    </div>
+  </section>
+
+  <!-- Axon Modal -->
+  <div class="modal" id="axonModal">
+    <span class="close">&times;</span>
+    <img src="/axonf.jpg" alt="Axon" class="modal-image slide-in">
+  </div>
+
+  <!-- Section Modal (starts with longsection, then replaces with shortsection) -->
+  <div class="modal" id="sectionModal">
+    <span class="close">&times;</span>
+    <img src="/longsectionf.jpg" alt="Long Section" class="modal-image flip" id="sectionImage">
+  </div>
+
+  <!-- Roof Modal -->
+  <div class="modal" id="roofModal">
+    <span class="close">&times;</span>
+    <img src="/roofplanf.jpg" alt="Roof Plan" class="modal-image zoom-out">
+  </div>
+
+  <section class="bubble-gallery">
+  <div class="bubble"><img src="/exterioragainf.jpg" alt="Exterior Again"></div>
+  <div class="bubble"><img src="/exteriorrender2.1f.jpg" alt="Exterior Render"></div>
+  <div class="bubble"><img src="/interior2ff.jpg" alt="Interior 2"></div>
+  <div class="bubble"><img src="/interior3f.jpg" alt="Interior 3"></div>
+</section>
+
+  <!-- All JavaScript at the bottom -->
+  <script>
+    /* -----------------------------
+       Circle Reveal
+    ----------------------------- */
+    const canvas = document.getElementById('stage');
+    const ctx = canvas.getContext('2d');
+    let image = new Image();
+    image.src = '/collagecoverFF.jpg';
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    const circles = [];
+    let isDragging = false;
+    let dragStart = null;
+
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      dragStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      isDragging = true;
+    });
+
+    canvas.addEventListener('mouseup', (e) => {
+      if (!isDragging) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const dx = x - dragStart.x;
+      const dy = y - dragStart.y;
+      const r = Math.max(10, Math.hypot(dx, dy));
+      circles.push({ x: dragStart.x, y: dragStart.y, r });
+      isDragging = false;
+      draw();
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (!image.complete) return;
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      for (const c of circles) {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      ctx.globalCompositeOperation = 'destination-over';
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    image.onload = () => resize();
+    resize();
+
+    /* -----------------------------
+       Zoom Controls
+    ----------------------------- */
+    const zoomImage = document.getElementById('zoomImage');
+    let scale = 1;
+
+    document.getElementById('zoomIn').addEventListener('click', () => {
+      scale = Math.min(scale + 0.2, 3);
+      zoomImage.style.transform = `scale(${scale})`;
+    });
+
+    document.getElementById('zoomOut').addEventListener('click', () => {
+      scale = Math.max(scale - 0.2, 0.5);
+      zoomImage.style.transform = `scale(${scale})`;
+    });
+
+    /* -----------------------------
+       Modal (Hotspot)
+    ----------------------------- */
+const hotspot = document.getElementById('hotspot1');
+const modal = document.getElementById('modal1');
+const closeBtn = document.getElementById('close1');
+
+hotspot.addEventListener('click', () => {
+  modal.classList.add('show');   // instead of display:flex
+});
+
+closeBtn.addEventListener('click', () => {
+  modal.classList.remove('show');
+});
+
+window.addEventListener('click', (e) => {
+  if (e.target === modal) {
+    modal.classList.remove('show');
+  }
+});
+
+    /* -----------------------------
+       Spotlight Effect
+    ----------------------------- */
+    const spotlightCanvas = document.getElementById('spotlightCanvas');
+    const ctxSpotlight = spotlightCanvas.getContext('2d');
+    const spotlightImg = new Image();
+    spotlightImg.src = '/midtermodel.jpg';
+
+    function resizeSpotlight() {
+      spotlightCanvas.width = window.innerWidth;
+      spotlightCanvas.height = window.innerHeight;
+      drawSpotlight(window.innerWidth / 2, window.innerHeight / 2);
+    }
+    window.addEventListener('resize', resizeSpotlight);
+
+    function drawSpotlight(x, y) {
+      ctxSpotlight.clearRect(0, 0, spotlightCanvas.width, spotlightCanvas.height);
+
+      ctxSpotlight.fillStyle = 'rgba(0,0,0,0.9)';
+      ctxSpotlight.fillRect(0, 0, spotlightCanvas.width, spotlightCanvas.height);
+
+      ctxSpotlight.save();
+      ctxSpotlight.globalCompositeOperation = 'destination-out';
+      ctxSpotlight.beginPath();
+      ctxSpotlight.arc(x, y, 250, 0, Math.PI * 2);
+      ctxSpotlight.fill();
+      ctxSpotlight.restore();
+
+      ctxSpotlight.save();
+      ctxSpotlight.globalCompositeOperation = 'lighter';
+      ctxSpotlight.fillStyle = 'rgba(255, 105, 180, 0.3)';
+      ctxSpotlight.beginPath();
+      ctxSpotlight.arc(x, y, 250, 0, Math.PI * 2);
+      ctxSpotlight.fill();
+      ctxSpotlight.restore();
+
+      ctxSpotlight.globalCompositeOperation = 'destination-over';
+      const canvasRatio = spotlightCanvas.width / spotlightCanvas.height;
+      const imgRatio = spotlightImg.width / spotlightImg.height;
+      let drawWidth, drawHeight, offsetX, offsetY;
+
+      if (canvasRatio > imgRatio) {
+        drawWidth = spotlightCanvas.width;
+        drawHeight = drawWidth / imgRatio;
+        offsetX = 0;
+        offsetY = (spotlightCanvas.height - drawHeight) / 2;
+      } else {
+        drawHeight = spotlightCanvas.height;
+        drawWidth = drawHeight * imgRatio;
+        offsetX = (spotlightCanvas.width - drawWidth) / 2;
+        offsetY = 0;
+      }
+
+      ctxSpotlight.drawImage(spotlightImg, offsetX, offsetY, drawWidth, drawHeight);
+      ctxSpotlight.globalCompositeOperation = 'source-over';
+    }
+
+    spotlightCanvas.addEventListener('mousemove', (e) => {
+      const rect = spotlightCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      drawSpotlight(x, y);
+    });
+
+    spotlightImg.onload = () => resizeSpotlight();
+
+    /* -----------------------------
+       Zoom on Scroll Section
+    ----------------------------- */
+    const zoomImageEl = document.querySelector('.zoom-image');
+    const zoomObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          zoomImageEl.style.transform = 'scale(2)';
+        } else {
+          zoomImageEl.style.transform = 'scale(1)';
+        }
+      });
+    }, { threshold: 0.5 });
+
+    zoomObserver.observe(document.querySelector('.zoom-section'));
+
+    /* -----------------------------
+       Process Reveal
+    ----------------------------- */
+    const processCanvas = document.getElementById('processCanvas');
+    const ctxProcess = processCanvas.getContext('2d');
+    const processImg = document.querySelector('.process-image');
+    let step = 0;
+
+    function resizeProcess() {
+      processCanvas.width = window.innerWidth;
+      processCanvas.height = window.innerHeight;
+      drawProcess();
+    }
+    window.addEventListener('resize', resizeProcess);
+
+    function drawProcess() {
+      ctxProcess.clearRect(0, 0, processCanvas.width, processCanvas.height);
+      ctxProcess.fillStyle = 'rgba(0,0,0,0.6)';
+      ctxProcess.fillRect(0, 0, processCanvas.width, processCanvas.height);
+
+      ctxProcess.save();
+      ctxProcess.globalCompositeOperation = 'destination-out';
+
+      let cutWidth = processCanvas.width / 2;
+      let cutHeight = processCanvas.height / 2;
+      let x = 0, y = 0;
+
+      if (step === 0) { x = 0; y = 0; }
+      else if (step === 1) { x = cutWidth; y = 0; }
+      else if (step === 2) { x = 0; y = cutHeight; }
+      else if (step === 3) { x = cutWidth; y = cutHeight; }
+
+      ctxProcess.fillRect(x, y, cutWidth, cutHeight);
+      ctxProcess.restore();
+    }
+
+    processCanvas.addEventListener('click', () => {
+      step = (step + 1) % 4;
+      drawProcess();
+    });
+
+    processImg.onload = () => resizeProcess();
+    resizeProcess();
+
+    /* -----------------------------
+       Hotspot Modals
+    ----------------------------- */
+    document.querySelectorAll('.hotspot').forEach(hotspot => {
+      hotspot.addEventListener('click', () => {
+        const targetId = hotspot.getAttribute('data-target');
+        const modal = document.getElementById(targetId);
+        modal.classList.add('show');
+      });
+    });
+
+    document.querySelectorAll('.modal .close').forEach(closeBtn => {
+      closeBtn.addEventListener('click', () => {
+        const modal = closeBtn.parentElement;
+        modal.classList.remove('show');
+        setTimeout(() => { modal.style.display = 'none'; }, 500);
+      });
+    });
+
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('show');
+          setTimeout(() => { modal.style.display = 'none'; }, 500);
+        }
+      });
+    });
+
+    /* -----------------------------
+       Section Modal Logic
+    ----------------------------- */
+    const sectionModal = document.getElementById('sectionModal');
+    const sectionImage = document.getElementById('sectionImage');
+    let showingShort = false;
+
+    sectionImage.addEventListener('click', () => {
+      if (!showingShort) {
+        sectionImage.src = '/shortsectionf.jpg';
+        sectionImage.alt = 'Short Section';
+        showingShort = true;
+      } else {
+        sectionImage.src = '/longsectionf.jpg';
+        sectionImage.alt = 'Long Section';
+        showingShort = false;
+      }
+    });
+   window.addEventListener("DOMContentLoaded", () => {
+  const bubbles = document.querySelectorAll('.bubble');
+  const gallery = document.querySelector('.bubble-gallery');
+  const galleryWidth = gallery.offsetWidth;
+  const galleryHeight = gallery.offsetHeight;
+
+  // bigger oval dimensions (~6in x 3in @ 96dpi)
+  const ovalWidth = 576;
+  const ovalHeight = 288;
+  const placed = [];
+
+  bubbles.forEach((bubble, i) => {
+    let x, y, safe = false;
+
+    while (!safe) {
+      x = Math.random() * (galleryWidth - ovalWidth) + ovalWidth / 2;
+      y = Math.random() * (galleryHeight - ovalHeight) + ovalHeight / 2;
+
+      safe = true;
+      for (const p of placed) {
+        const dx = x - p.x;
+        const dy = y - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        const minDist = Math.sqrt(
+          Math.pow(ovalWidth / 2, 2) + Math.pow(ovalHeight / 2, 2)
+        ) + 50; // extra buffer for larger ovals
+
+        if (dist < minDist) {
+          safe = false;
+          break;
+        }
+      }
+    }
+
+    bubble.style.left = `${x}px`;
+    bubble.style.top = `${y}px`;
+    bubble.style.width = `${ovalWidth}px`;
+    bubble.style.height = `${ovalHeight}px`;
+
+    bubble.style.animationDelay = `${i * 2}s`;
+    bubble.style.zIndex = i;
+
+    placed.push({ x, y });
+  });
+});
+
+
+    
+  </script>
+</body>
+</html>
